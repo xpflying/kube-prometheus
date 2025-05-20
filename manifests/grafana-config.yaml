@@ -12,4 +12,7 @@ stringData:
   grafana.ini: |
     [date_formats]
     default_timezone = UTC
+    [security]
+    admin_user = admin
+    admin_password = 0390ae5a60c7621d6a04d0914b9ad9d0
 type: Opaque
