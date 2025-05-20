@@ -20,14 +20,14 @@ spec:
         summary: Pod is crash looping.
       expr: |
         max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="kube-state-metrics"}[5m]) >= 1
-      for: 15m
+      for: 5m
       labels:
         severity: warning
     - alert: KubePodNotReady
       annotations:
-        description: Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes on cluster {{ $labels.cluster }}.
+        description: Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 5 minutes on cluster {{ $labels.cluster }}.
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodnotready
-        summary: Pod has been in a non-ready state for more than 15 minutes.
+        summary: Pod has been in a non-ready state for more than 5 minutes.
       expr: |
         sum by (namespace, pod, job, cluster) (
           max by(namespace, pod, job, cluster) (
@@ -44,7 +44,7 @@ spec:
         ) > 0
         unless on(namespace, pod, cluster)
         kube_pod_status_reason{job="kube-state-metrics", reason="SchedulingGated"} == 1
-      for: 15m
+      for: 5m
       labels:
         severity: warning
     - alert: KubeDeploymentGenerationMismatch
@@ -226,7 +226,7 @@ spec:
         summary: Job failed to complete.
       expr: |
         kube_job_failed{job="kube-state-metrics"}  > 0
-      for: 15m
+      for: 5m
       labels:
         severity: warning
     - alert: KubeHpaReplicasMismatch
@@ -447,31 +447,6 @@ spec:
       for: 15m
       labels:
         severity: warning
-    - alert: CPUThrottlingHigh
-      annotations:
-        description: '{{ $value | humanizePercentage }} throttling of CPU in namespace {{ $labels.namespace }} for container {{ $labels.container }} in pod {{ $labels.pod }} on cluster {{ $labels.cluster }}.'
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh
-        summary: Processes experience elevated CPU throttling.
-      expr: |
-        sum without (id, metrics_path, name, image, endpoint, job, node) (
-          topk by (cluster, namespace, pod, container, instance) (1,
-            increase(
-              container_cpu_cfs_throttled_periods_total{container!="", job="kubelet", metrics_path="/metrics/cadvisor", }
-            [5m])
-          )
-        )
-        / on (cluster, namespace, pod, container, instance) group_left
-        sum without (id, metrics_path, name, image, endpoint, job, node) (
-          topk by (cluster, namespace, pod, container, instance) (1,
-            increase(
-              container_cpu_cfs_periods_total{job="kubelet", metrics_path="/metrics/cadvisor", }
-            [5m])
-          )
-        )
-        > ( 25 / 100 )
-      for: 15m
-      labels:
-        severity: info
   - name: kubernetes-storage
     rules:
     - alert: KubePersistentVolumeFillingUp
@@ -590,7 +565,7 @@ spec:
           /
         sum(rate(rest_client_requests_total{job="apiserver"}[5m])) by (cluster, instance, job, namespace))
         > 0.01
-      for: 15m
+      for: 5m
       labels:
         severity: warning
   - name: kube-apiserver-slos
@@ -677,16 +652,6 @@ spec:
       for: 5m
       labels:
         severity: critical
-    - alert: KubeAggregatedAPIErrors
-      annotations:
-        description: Kubernetes aggregated API {{ $labels.instance }}/{{ $labels.name }} has reported {{ $labels.reason }} errors on cluster {{ $labels.cluster }}.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeaggregatedapierrors
-        summary: Kubernetes aggregated API has reported errors.
-      expr: |
-        sum by(cluster, instance, name, reason)(increase(aggregator_unavailable_apiservice_total{job="apiserver"}[1m])) > 0
-      for: 10m
-      labels:
-        severity: warning
     - alert: KubeAggregatedAPIDown
       annotations:
         description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace }} has been only {{ $value | humanize }}% available over the last 10m on cluster {{ $labels.cluster }}.
@@ -704,7 +669,7 @@ spec:
         summary: Target disappeared from Prometheus target discovery.
       expr: |
         absent(up{job="apiserver"})
-      for: 15m
+      for: 5m
       labels:
         severity: critical
     - alert: KubeAPIInstanceUnreachable
@@ -731,14 +696,14 @@ spec:
     rules:
     - alert: KubeNodeNotReady
       annotations:
-        description: '{{ $labels.node }} has been unready for more than 15 minutes on cluster {{ $labels.cluster }}.'
+        description: '{{ $labels.node }} has been unready for more than 5 minutes on cluster {{ $labels.cluster }}.'
         runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodenotready
         summary: Node is not ready.
       expr: |
         kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"} == 0
         and on (cluster, node)
         kube_node_spec_unschedulable{job="kube-state-metrics"} == 0
-      for: 15m
+      for: 5m
       labels:
         severity: warning
     - alert: KubeNodePressure
@@ -760,7 +725,7 @@ spec:
         summary: Node is unreachable.
       expr: |
         (kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"} unless ignoring(key,value) kube_node_spec_taint{job="kube-state-metrics",key=~"ToBeDeletedByClusterAutoscaler|cloud.google.com/impending-node-termination|aws-node-termination-handler/spot-itn"}) == 1
-      for: 15m
+      for: 5m
       labels:
         severity: warning
     - alert: KubeletTooManyPods
@@ -918,53 +883,9 @@ spec:
         count by (cluster) (kube_node_info{job="kube-state-metrics"})
         unless on (cluster)
         count by (cluster) (up{job="kubelet", metrics_path="/metrics"} == 1)
-      for: 15m
+      for: 5m
       labels:
         severity: critical
-  - name: kubernetes-system-scheduler
-    rules:
-    - alert: KubeSchedulerDown
-      annotations:
-        description: KubeScheduler has disappeared from Prometheus target discovery.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeschedulerdown
-        summary: Target disappeared from Prometheus target discovery.
-      expr: |
-        absent(up{job="kube-scheduler"})
-      for: 15m
-      labels:
-        severity: critical
-    - alert: KubeSchedulerInstanceUnreachable
-      annotations:
-        description: A KubeScheduler instance has been unreachable for more than 15 minutes.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeschedulerinstanceunreachable
-        summary: KubeScheduler instance is unreachable.
-      expr: |
-        up{job="kube-scheduler"} == 0
-      for: 15m
-      labels:
-        severity: warning
-  - name: kubernetes-system-controller-manager
-    rules:
-    - alert: KubeControllerManagerDown
-      annotations:
-        description: KubeControllerManager has disappeared from Prometheus target discovery.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontrollermanagerdown
-        summary: Target disappeared from Prometheus target discovery.
-      expr: |
-        absent(up{job="kube-controller-manager"})
-      for: 15m
-      labels:
-        severity: critical
-    - alert: KubeControllerManagerInstanceUnreachable
-      annotations:
-        description: A KubeControllerManager instance has been unreachable for more than 15 minutes.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontrollermanagerinstanceunreachable
-        summary: KubeControllerManager instance is unreachable.
-      expr: |
-        up{job="kube-controller-manager"} == 0
-      for: 15m
-      labels:
-        severity: warning
   - interval: 3m
     name: kube-apiserver-availability.rules
     rules:

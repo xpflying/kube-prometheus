@@ -32,10 +32,12 @@ spec:
   podMonitorSelector: {}
   probeNamespaceSelector: {}
   probeSelector: {}
-  replicas: 2
+  replicas: 1
   resources:
     requests:
       memory: 400Mi
+  retention: 7d
+  retentionSize: 40GiB
   ruleNamespaceSelector: {}
   ruleSelector: {}
   scrapeConfigNamespaceSelector: {}
@@ -48,4 +50,12 @@ spec:
   serviceDiscoveryRole: EndpointSlice
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector: {}
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
   version: 3.13.2
