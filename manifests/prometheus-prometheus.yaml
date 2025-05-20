@@ -17,6 +17,7 @@ spec:
       namespace: monitoring
       port: web
   enableFeatures: []
+  evaluationInterval: 30s
   externalLabels: {}
   image: quay.io/prometheus/prometheus:v3.3.1
   nodeSelector:
@@ -30,16 +31,19 @@ spec:
       app.kubernetes.io/version: 3.3.1
   podMonitorNamespaceSelector: {}
   podMonitorSelector: {}
+  portName: web
   probeNamespaceSelector: {}
   probeSelector: {}
-  replicas: 2
+  replicas: 1
   resources:
     requests:
       memory: 400Mi
+  retention: 7d
   ruleNamespaceSelector: {}
   ruleSelector: {}
   scrapeConfigNamespaceSelector: {}
   scrapeConfigSelector: {}
+  scrapeInterval: 30s
   securityContext:
     fsGroup: 2000
     runAsNonRoot: true
@@ -47,4 +51,11 @@ spec:
   serviceAccountName: prometheus-k8s
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector: {}
+  storage:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 50Gi
+        storageClassName: default
   version: 3.3.1

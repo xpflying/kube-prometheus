@@ -20,7 +20,8 @@ spec:
       app.kubernetes.io/name: alertmanager
       app.kubernetes.io/part-of: kube-prometheus
       app.kubernetes.io/version: 0.28.1
-  replicas: 3
+  portName: web
+  replicas: 1
   resources:
     limits:
       cpu: 100m
@@ -28,6 +29,7 @@ spec:
     requests:
       cpu: 4m
       memory: 100Mi
+  retention: 48h
   secrets: []
   securityContext:
     fsGroup: 2000
