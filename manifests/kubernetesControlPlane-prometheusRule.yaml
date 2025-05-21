@@ -360,19 +360,19 @@ spec:
       for: 5m
       labels:
         severity: warning
-    - alert: CPUThrottlingHigh
-      annotations:
-        description: '{{ $value | humanizePercentage }} throttling of CPU in namespace {{ $labels.namespace }} for container {{ $labels.container }} in pod {{ $labels.pod }} on cluster {{ $labels.cluster }}.'
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh
-        summary: Processes experience elevated CPU throttling.
-      expr: |
-        sum(increase(container_cpu_cfs_throttled_periods_total{container!="", job="kubelet", metrics_path="/metrics/cadvisor", }[5m])) without (id, metrics_path, name, image, endpoint, job, node)
-          / on (cluster, namespace, pod, container, instance) group_left
-        sum(increase(container_cpu_cfs_periods_total{job="kubelet", metrics_path="/metrics/cadvisor", }[5m])) without (id, metrics_path, name, image, endpoint, job, node)
-          > ( 25 / 100 )
-      for: 5m
-      labels:
-        severity: info
+    # - alert: CPUThrottlingHigh
+    #   annotations:
+    #     description: '{{ $value | humanizePercentage }} throttling of CPU in namespace {{ $labels.namespace }} for container {{ $labels.container }} in pod {{ $labels.pod }} on cluster {{ $labels.cluster }}.'
+    #     runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh
+    #     summary: Processes experience elevated CPU throttling.
+    #   expr: |
+    #     sum(increase(container_cpu_cfs_throttled_periods_total{container!="", job="kubelet", metrics_path="/metrics/cadvisor", }[5m])) without (id, metrics_path, name, image, endpoint, job, node)
+    #       / on (cluster, namespace, pod, container, instance) group_left
+    #     sum(increase(container_cpu_cfs_periods_total{job="kubelet", metrics_path="/metrics/cadvisor", }[5m])) without (id, metrics_path, name, image, endpoint, job, node)
+    #       > ( 25 / 100 )
+    #   for: 5m
+    #   labels:
+    #     severity: info
   - name: kubernetes-storage
     rules:
     - alert: KubePersistentVolumeFillingUp
@@ -578,16 +578,16 @@ spec:
       for: 5m
       labels:
         severity: critical
-    - alert: KubeAggregatedAPIErrors
-      annotations:
-        description: Kubernetes aggregated API {{ $labels.instance }}/{{ $labels.name }} has reported {{ $labels.reason }} errors on cluster {{ $labels.cluster }}.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeaggregatedapierrors
-        summary: Kubernetes aggregated API has reported errors.
-      expr: |
-        sum by(cluster, instance, name, reason)(increase(aggregator_unavailable_apiservice_total{job="apiserver"}[1m])) > 0
-      for: 10m
-      labels:
-        severity: warning
+    # - alert: KubeAggregatedAPIErrors
+    #   annotations:
+    #     description: Kubernetes aggregated API {{ $labels.instance }}/{{ $labels.name }} has reported {{ $labels.reason }} errors on cluster {{ $labels.cluster }}.
+    #     runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeaggregatedapierrors
+    #     summary: Kubernetes aggregated API has reported errors.
+    #   expr: |
+    #     sum by(cluster, instance, name, reason)(increase(aggregator_unavailable_apiservice_total{job="apiserver"}[1m])) > 0
+    #   for: 10m
+    #   labels:
+    #     severity: warning
     - alert: KubeAggregatedAPIDown
       annotations:
         description: Kubernetes aggregated API {{ $labels.name }}/{{ $labels.namespace }} has been only {{ $value | humanize }}% available over the last 10m on cluster {{ $labels.cluster }}.
@@ -789,30 +789,30 @@ spec:
       for: 5m
       labels:
         severity: critical
-  - name: kubernetes-system-scheduler
-    rules:
-    - alert: KubeSchedulerDown
-      annotations:
-        description: KubeScheduler has disappeared from Prometheus target discovery.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeschedulerdown
-        summary: Target disappeared from Prometheus target discovery.
-      expr: |
-        absent(up{job="kube-scheduler"} == 1)
-      for: 5m
-      labels:
-        severity: critical
-  - name: kubernetes-system-controller-manager
-    rules:
-    - alert: KubeControllerManagerDown
-      annotations:
-        description: KubeControllerManager has disappeared from Prometheus target discovery.
-        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontrollermanagerdown
-        summary: Target disappeared from Prometheus target discovery.
-      expr: |
-        absent(up{job="kube-controller-manager"} == 1)
-      for: 5m
-      labels:
-        severity: critical
+  # - name: kubernetes-system-scheduler
+  #   rules:
+  #   - alert: KubeSchedulerDown
+  #     annotations:
+  #       description: KubeScheduler has disappeared from Prometheus target discovery.
+  #       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeschedulerdown
+  #       summary: Target disappeared from Prometheus target discovery.
+  #     expr: |
+  #       absent(up{job="kube-scheduler"} == 1)
+  #     for: 5m
+  #     labels:
+  #       severity: critical
+  # - name: kubernetes-system-controller-manager
+  #   rules:
+  #   - alert: KubeControllerManagerDown
+  #     annotations:
+  #       description: KubeControllerManager has disappeared from Prometheus target discovery.
+  #       runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontrollermanagerdown
+  #       summary: Target disappeared from Prometheus target discovery.
+  #     expr: |
+  #       absent(up{job="kube-controller-manager"} == 1)
+  #     for: 5m
+  #     labels:
+  #       severity: critical
   - interval: 3m
     name: kube-apiserver-availability.rules
     rules:
